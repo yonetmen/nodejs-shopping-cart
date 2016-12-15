@@ -4,6 +4,7 @@ var csrf = require('csurf');
 var passport = require('passport');
 
 var Order = require('../models/order');
+var Cart = require('../models/cart');
 
 var csrfProtection = csrf();
 router.use(csrfProtection);
@@ -13,14 +14,15 @@ router.get('/profile', isLoggedIn, function(req, res, next) {
     Order.find({user: req.user}, function (err, orders) {
         if(err) {
             // Todo: Handle properly.
-            return res.write("Error!");
+            return res.write("Error: " + err.message);
         }
         var cart;
         orders.forEach(function (order) {
             cart = new Cart(order.cart);
+            order.items = cart.generateArray();
         });
+        res.render('user/profile', {orders: orders});
     });
-    res.render('user/profile');
 });
 
 router.get('/logout', isLoggedIn, function (req, res, next) {
